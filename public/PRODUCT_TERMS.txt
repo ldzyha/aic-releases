@@ -1,0 +1,15 @@
+AIC PROPRIETARY SOFTWARE TERMS
+
+Copyright (c) 2026 AIC. All rights reserved.
+
+The AIC source code is proprietary and is not open-source software. No source-code license is
+granted by access to this repository.
+
+An official AIC binary distribution may be downloaded, installed, and run in unmodified form for
+the recipient's own authorized use. No permission is granted to redistribute, sell, sublicense,
+publish, or create derivative works from AIC, except under a separate written agreement or where
+applicable law cannot restrict that right.
+
+Third-party components remain governed by their respective licenses. Those licenses and notices
+are included with public binary distributions and do not change the proprietary status of AIC's
+own code.
