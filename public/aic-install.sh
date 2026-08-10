@@ -242,6 +242,14 @@ validate_installed_release() {
 	fi
 }
 
+sync_installed_rules() {
+	local installed="$HOME/.local/bin/aic"
+	capture_bounded_output "installed AIC global rule synchronization" \
+		"$install_tmp/rules-sync.json" env -i \
+		"HOME=$HOME" "PATH=/usr/local/bin:/usr/bin:/bin" \
+		"$installed" rules sync --replace-global-instructions --json
+}
+
 parse_index() {
 	local path="$1" line key value seen='|' count=0 expected_release_id
 	schema_version="" version="" release_id="" web_manifest_sha256=""
@@ -564,6 +572,7 @@ main() {
 	validate_expected_release "$bundle_sha" "$bundle_bytes"
 	validate_installed_release
 	if [ "$already_current" -eq 1 ]; then
+		sync_installed_rules
 		printf 'aic-release-install: AIC %s already matches the public binary release identity; use --repair only for an explicit reinstall\n' \
 			"$version"
 		return 0
