@@ -1,19 +1,18 @@
-# AIC 1.0.97
+# AIC 1.0.98
 
-This release gives the editor and side tools one physical shell, makes global guidance more
-fact-disciplined, and turns project Node/npm selection into an explicit optional control.
+This release restores the desktop side panel as a polished overlay, limits pane exchange to code
+and Terminal, and makes the Node/npm install path explicit after version selection.
 
-- The one live editor carousel and one live tools context now swap between identical main and side
-  pane shells without cloning CodeMirror, xterm, or sidebar state. The permanent side action rail
-  remains stable, mobile stays full-screen in both orientations, and focus/inert ownership follows
-  the visible context.
-- AIC global agent rules advance to v2 with the owner’s calibration and factual-hygiene contract.
-  Install and update replace all managed provider-neutral instruction slots atomically; an older AIC
-  refuses a future rules generation instead of silently downgrading it.
-- Sidebar Markdown notes, including the project-independent global note, now use the shared Markdown
-  profile and render Mermaid previews. Tap or Enter reveals that fence’s editable source locally;
-  the detached mobile workbench keeps location, source, then preview in vertical order.
-- Separate Node and npm action-bar buttons open compact server-backed dropdowns in the package side
-  panel. Node changes choose the backend-owned default npm; npm can then select another verified
-  compatible pair. Hiding either action disables that selector, hiding both stops toolchain queries,
-  and activation accepts only short-lived root/package-bound opaque tokens.
+- The desktop side panel again overlays the stable inactive-editor lane instead of reserving a
+  split or shrinking the code carousel. Its width follows the full workspace’s carousel geometry,
+  retains the useful compact floor, and remains stable while slides move.
+- Only the exact live code and Terminal carousel roots can exchange main and side placement.
+  Explorer, Notes, Mermaid, Packages, Commander, and every other tool remain side-only; opening one
+  first restores code to the main pane. Empty or hidden Terminal state cannot enable the exchange.
+- Terminal now uses the shared carousel page, edge-peek, focus, settlement, and restrained inactive
+  slide presentation while preserving each live PTY. Raw Escape still reaches the shell, Terminal
+  cycling stays isolated from code, and `Ctrl/Cmd+P` opens Commander from Terminal focus.
+- Opening either optional Node or npm action refreshes both server-backed dropdowns. After choosing
+  a verified pair, the panel now exposes an explicit review step followed by a distinct
+  **Install + activate** or **Activate** confirmation, without accepting client-supplied paths or
+  arbitrary versions.
