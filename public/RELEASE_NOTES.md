@@ -1,18 +1,20 @@
-# AIC 1.0.98
+# AIC 1.0.99
 
-This release restores the desktop side panel as a polished overlay, limits pane exchange to code
-and Terminal, and makes the Node/npm install path explicit after version selection.
+This release simplifies the side-panel interaction model, makes Explorer calmer and more direct,
+and routes every clickable project-file reference through one fail-closed navigator.
 
-- The desktop side panel again overlays the stable inactive-editor lane instead of reserving a
-  split or shrinking the code carousel. Its width follows the full workspace’s carousel geometry,
-  retains the useful compact floor, and remains stable while slides move.
-- Only the exact live code and Terminal carousel roots can exchange main and side placement.
-  Explorer, Notes, Mermaid, Packages, Commander, and every other tool remain side-only; opening one
-  first restores code to the main pane. Empty or hidden Terminal state cannot enable the exchange.
-- Terminal now uses the shared carousel page, edge-peek, focus, settlement, and restrained inactive
-  slide presentation while preserving each live PTY. Raw Escape still reaches the shell, Terminal
-  cycling stays isolated from code, and `Ctrl/Cmd+P` opens Commander from Terminal focus.
-- Opening either optional Node or npm action refreshes both server-backed dropdowns. After choosing
-  a verified pair, the panel now exposes an explicit review step followed by a distinct
-  **Install + activate** or **Activate** confirmation, without accepting client-supplied paths or
-  arbitrary versions.
+- The editor remains in the main carousel and Terminal remains a retained technical carousel in
+  the sticky side overlay. The code/Terminal exchange control and shortcut are removed, and a
+  hidden retained Terminal can no longer remain painted after the side panel closes.
+- The fixed action chrome is now one compact, text-only **Commander** button near the safe bottom
+  edge. Commands keep semantic icons inside Commander, including a dedicated Global Note icon;
+  pin checkboxes, projected action buttons, and their persisted migration state are removed.
+- Explorer removes per-file checkboxes, connector lines, and the inert ellipsis disclosure. Rows
+  use compact indentation and a restrained monochrome zebra; the one Worktree switch sits beside
+  Explorer's close control, and a successful file open or interaction with code closes Explorer.
+- Escape closes non-Terminal side tools from code or sidebar focus. A live PTY retains raw Escape,
+  while an empty or ended Terminal releases it so the panel can close.
+- Packages, Markdown links and tables, quoted editor paths, Terminal links, agent-guide entries,
+  and definition results now share one project navigator. Canonical links require an exact existing
+  file, path containment is preserved across POSIX and Windows forms, and a missing redirect cannot
+  recover a draft or expose an implicit file-creation continuation.
