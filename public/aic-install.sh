@@ -7,9 +7,12 @@ umask 077
 readonly AIC_PUBLIC_BASE="https://raw.githubusercontent.com/ldzyha/aic-releases/main/public"
 readonly MAX_INDEX_BYTES=65536
 readonly MAX_BUNDLE_BYTES=94371840
-readonly MAX_ARCHIVE_ENTRIES=2048
+readonly MAX_ARCHIVE_ENTRIES=16384
 readonly MAX_ARCHIVE_FILE_BYTES=268435456
 readonly MAX_EXTRACTED_BYTES=536870912
+readonly B2C_RUNTIME_INVENTORY_SHA256=d4759e9330daf1d42a8175a1f6b3ac8197710ac509481d2ade4137c6316531cf
+readonly B2C_RUNTIME_METADATA_SHA256=2f917e8f5c504184791e16640544ceaa6597c115dc7eb6f6b6ba7b8b8a83a7eb
+readonly B2C_INVENTORY_SCRIPT_SHA256=f37ce2c558a5558cbf4b15b06ca4e8cd8bce94e5c25daae07bb6ec8c84e821ff
 install_tmp=""
 archive_total_bytes=""
 replace_legacy=0
@@ -85,6 +88,48 @@ owner_real_directory() {
 	[[ "$mode" =~ ^[0-7]{3,4}$ ]] || return 1
 	mode_number=$((8#$mode))
 	[ "$((mode_number & 8#022))" -eq 0 ]
+}
+
+# Recompute the full pinned B2C tree identity without executing its installed Node or JavaScript.
+# The runtime metadata envelope is deliberately excluded and has its own AIC-owned digest above.
+b2c_runtime_inventory_sha256() {
+	local root="$1" all_paths="$install_tmp/b2c-all.paths" directories="$install_tmp/b2c-directories.paths"
+	local files="$install_tmp/b2c-files.paths" path row hash all_count directory_count file_count
+	local total_bytes LC_ALL=C
+	[ -d "$root" ] && [ ! -L "$root" ] &&
+		[ "$(realpath -e -- "$root" 2>/dev/null || true)" = "$root" ] || return 1
+	find "$root" -mindepth 1 -printf '%P\0' | sort -z >"$all_paths" || return 1
+	find "$root" -mindepth 1 -type d -printf '%P\0' | sort -z >"$directories" || return 1
+	find "$root" -mindepth 1 -type f ! -path "$root/runtime.json" -printf '%P\0' | sort -z >"$files" || return 1
+	[ "$(wc -c <"$all_paths")" -le 2097152 ] || return 1
+	all_count=$(awk 'BEGIN { RS="\0" } END { print NR }' "$all_paths") || return 1
+	directory_count=$(awk 'BEGIN { RS="\0" } END { print NR }' "$directories") || return 1
+	file_count=$(awk 'BEGIN { RS="\0" } END { print NR }' "$files") || return 1
+	[ "$all_count" -gt 1 ] && [ "$all_count" -le 16385 ] &&
+		[ "$all_count" -eq "$((directory_count + file_count + 1))" ] || return 1
+	[ -f "$root/runtime.json" ] && [ ! -L "$root/runtime.json" ] || return 1
+	while IFS= read -r -d '' path; do
+		case "$path" in *\\* | *[![:print:]]*) return 1 ;; esac
+	done <"$all_paths"
+	if find "$root" -mindepth 1 \( -type l -o -type p -o -type b -o -type c -o -type s \) -print -quit | grep -q .; then
+		return 1
+	fi
+	if find "$root" -mindepth 1 -type f ! -path "$root/runtime.json" -size +268435456c -print -quit | grep -q .; then
+		return 1
+	fi
+	total_bytes=$(find "$root" -mindepth 1 -type f ! -path "$root/runtime.json" -printf '%s\n' |
+		awk '{ total += $1; if (total > 536870912) exit 2 } END { print total + 0 }') || return 1
+	[ "$total_bytes" -le 536870912 ] || return 1
+	{
+		while IFS= read -r -d '' path; do printf 'D\0%s\0' "$path"; done <"$directories"
+		(cd "$root" && xargs -0 -r sha256sum --zero -- <"$files") |
+			while IFS= read -r -d '' row; do
+				hash=${row%% *}
+				path=${row#*  }
+				[[ "$hash" =~ ^[0-9a-f]{64}$ ]] && [ -n "$path" ] || return 1
+				printf 'F\0%s\0%s\0' "$path" "$hash"
+			done
+	} | sha256sum | awk '{ print $1 }'
 }
 
 validate_v1_uv_tool_link() {
@@ -242,6 +287,118 @@ validate_installed_release() {
 	fi
 }
 
+installed_b2c_runtime_current() {
+	local data_root runtime version_json smoke_home inventory_sha256
+	data_root=${XDG_DATA_HOME:-$HOME/.local/share}
+	[[ "$data_root" = /* && "$data_root" != *//* && ! "$data_root" =~ (^|/)\.\.?(/|$) ]] || return 1
+	runtime="$data_root/aic/runtime"
+	[ -d "$runtime" ] && [ ! -L "$runtime" ] &&
+		[ "$(realpath -e -- "$runtime" 2>/dev/null || true)" = "$runtime" ] &&
+		[ -x "$runtime/node/bin/node" ] && [ ! -L "$runtime/node/bin/node" ] &&
+		[ -f "$runtime/b2c/node_modules/@salesforce/b2c-cli/bin/run.js" ] &&
+		[ ! -L "$runtime/b2c/node_modules/@salesforce/b2c-cli/bin/run.js" ] &&
+		[ -f "$runtime/b2c/aic-b2c.mjs" ] && [ ! -L "$runtime/b2c/aic-b2c.mjs" ] &&
+		[ -f "$runtime/b2c/aic-runtime-inventory.mjs" ] && [ ! -L "$runtime/b2c/aic-runtime-inventory.mjs" ] &&
+		[ -f "$runtime/b2c/runtime.json" ] && [ ! -L "$runtime/b2c/runtime.json" ] &&
+		[ -f "$runtime/b2c/SECURITY_REVIEW.json" ] && [ ! -L "$runtime/b2c/SECURITY_REVIEW.json" ] &&
+		[ -f "$runtime/b2c/aic-cartridges.mjs" ] && [ ! -L "$runtime/b2c/aic-cartridges.mjs" ] || return 1
+	[ "$(sha256sum "$runtime/b2c/runtime.json" | awk '{ print $1 }')" = "$B2C_RUNTIME_METADATA_SHA256" ] || return 1
+	[ "$(sha256sum "$runtime/b2c/aic-runtime-inventory.mjs" | awk '{ print $1 }')" = "$B2C_INVENTORY_SCRIPT_SHA256" ] || return 1
+	inventory_sha256=$(b2c_runtime_inventory_sha256 "$runtime/b2c") || return 1
+	[ "$inventory_sha256" = "$B2C_RUNTIME_INVENTORY_SHA256" ] || return 1
+	[ "$("$runtime/node/bin/node" --version 2>/dev/null || true)" = v24.19.0 ] || return 1
+	smoke_home="$install_tmp/installed-b2c-home"
+	mkdir -p "$smoke_home/config" "$smoke_home/data" "$smoke_home/cache" || return 1
+	if ! try_capture_bounded_output "installed B2C runtime identity" "$install_tmp/installed-b2c-version.json" \
+		env -i -C "$smoke_home" HOME="$smoke_home" XDG_CONFIG_HOME="$smoke_home/config" \
+		XDG_DATA_HOME="$smoke_home/data" XDG_CACHE_HOME="$smoke_home/cache" PATH=/usr/bin:/bin \
+		SFCC_DISABLE_TELEMETRY=true SF_DISABLE_TELEMETRY=true B2C_SKIP_NEW_VERSION_CHECK=true \
+		NO_UPDATE_NOTIFIER=1 "$runtime/node/bin/node" "$runtime/b2c/aic-b2c.mjs" version --json; then
+		return 1
+	fi
+	version_json=$(<"$install_tmp/installed-b2c-version.json")
+	"$runtime/node/bin/node" - "$runtime" "$version_json" <<'NODE' >/dev/null 2>&1
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const [root, versionJson] = process.argv.slice(2);
+const version = JSON.parse(versionJson);
+const metadata = JSON.parse(fs.readFileSync(path.join(root, "b2c/runtime.json"), "utf8"));
+const securityBytes = fs.readFileSync(path.join(root, "b2c/SECURITY_REVIEW.json"));
+const security = JSON.parse(securityBytes);
+const helperBytes = fs.readFileSync(path.join(root, "b2c/aic-cartridges.mjs"));
+const runnerBytes = fs.readFileSync(path.join(root, "b2c/aic-b2c.mjs"));
+const inventoryScriptBytes = fs.readFileSync(path.join(root, "b2c/aic-runtime-inventory.mjs"));
+const wrapperBytes = fs.readFileSync(path.join(root, "b2c/b2c-wrapper.sh"));
+const integrity = "sha512-VUqpkBN5HDEK2TLLVcYF33kn/9t9/r8ShIWF4vTcdzzGjJw/XRJWzWBArzqn7U1oeasieHq01FsucJ1967vs7g==";
+if (version.architecture !== `linux-${process.arch}`
+  || version.cliVersion !== "@salesforce/b2c-cli/1.21.4" || version.nodeVersion !== "node-v24.19.0"
+  || metadata.schemaVersion !== 2 || metadata.nodeVersion !== "v24.19.0"
+  || metadata.npmVersion !== "11.17.0" || metadata.packageCount !== 472
+  || metadata.cli?.name !== "@salesforce/b2c-cli" || metadata.cli?.version !== "1.21.4"
+  || metadata.cli?.integrity !== integrity || metadata.sdkVersion !== "1.21.3"
+  || metadata.packageLockSha256 !== "a1677f3b4b3d9a0c48bfd58415a56e1d4cd756db5888ad1370b4071c75a185f9"
+  || metadata.telemetryDefault !== "disabled"
+  || metadata.securityReviewSha256 !== "ac44d6d2a2bd2b2fc9825a0d8a606fc842b94238307487ccbd3030e88ba08e68"
+  || crypto.createHash("sha256").update(securityBytes).digest("hex") !== metadata.securityReviewSha256
+  || metadata.helperSha256 !== crypto.createHash("sha256").update(helperBytes).digest("hex")
+  || metadata.runnerSha256 !== crypto.createHash("sha256").update(runnerBytes).digest("hex")
+  || metadata.inventoryScriptSha256 !== crypto.createHash("sha256").update(inventoryScriptBytes).digest("hex")
+  || metadata.inventoryScriptSha256 !== "f37ce2c558a5558cbf4b15b06ca4e8cd8bce94e5c25daae07bb6ec8c84e821ff"
+  || metadata.wrapperSha256 !== crypto.createHash("sha256").update(wrapperBytes).digest("hex")
+  || JSON.stringify(Object.keys(metadata.inventory || {}).sort())
+    !== JSON.stringify(["algorithm", "entryCount", "fileCount", "schemaVersion", "sha256", "totalBytes"].sort())
+  || metadata.inventory.schemaVersion !== 1
+  || metadata.inventory?.algorithm !== "sha256-path-digests-v1"
+  || !Number.isInteger(metadata.inventory.entryCount) || metadata.inventory.entryCount < 1
+  || metadata.inventory.entryCount > 16384 || !Number.isInteger(metadata.inventory.fileCount)
+  || metadata.inventory.fileCount < 1 || metadata.inventory.fileCount > metadata.inventory.entryCount
+  || !Number.isInteger(metadata.inventory.totalBytes) || metadata.inventory.totalBytes < 1
+  || metadata.inventory.totalBytes > 536870912 || !/^[0-9a-f]{64}$/.test(metadata.inventory.sha256)
+  || security.summary?.critical !== 0 || security.summary?.high !== 18
+  || security.summary?.moderate !== 4 || security.summary?.total !== 22) process.exit(2);
+NODE
+}
+
+ensure_installed_b2c_wrapper() {
+	local data_root source destination destination_parent stage
+	data_root=${XDG_DATA_HOME:-$HOME/.local/share}
+	source="$data_root/aic/runtime/b2c/b2c-wrapper.sh"
+	destination="$HOME/.local/bin/b2c"
+	destination_parent=${destination%/*}
+	[ -f "$source" ] && [ ! -L "$source" ] && [ -x "$source" ] || return 1
+	[ -d "$destination_parent" ] && [ ! -L "$destination_parent" ] \
+		&& [ "$(realpath -e -- "$destination_parent" 2>/dev/null || true)" = "$destination_parent" ] \
+		&& [ "$(stat -c %u -- "$destination_parent")" = "$(id -u)" ] || return 1
+	if [ -e "$destination" ] || [ -L "$destination" ]; then
+		if [ -f "$destination" ] && [ ! -L "$destination" ] && [ -x "$destination" ] \
+			&& cmp -s "$source" "$destination"; then
+			return 0
+		fi
+		printf 'aic-release-install: WARNING — %s already exists and was not replaced; AIC uses its private B2C runtime directly\n' \
+			"$destination" >&2
+		return 0
+	fi
+	stage=$(mktemp "$destination_parent/.aic-b2c-wrapper.XXXXXX")
+	cp -- "$source" "$stage"
+	chmod 0755 -- "$stage"
+	[ -f "$stage" ] && [ ! -L "$stage" ] && cmp -s "$source" "$stage" || {
+		rm -f -- "$stage"
+		return 1
+	}
+	if ! ln -- "$stage" "$destination"; then
+		rm -f -- "$stage"
+		if [ -e "$destination" ] || [ -L "$destination" ]; then
+			printf 'aic-release-install: WARNING — %s appeared during wrapper install and was not replaced; AIC uses its private B2C runtime directly\n' \
+				"$destination" >&2
+			return 0
+		fi
+		return 1
+	fi
+	rm -f -- "$stage"
+	[ -f "$destination" ] && [ ! -L "$destination" ] && cmp -s "$source" "$destination"
+}
+
 sync_installed_rules() {
 	local installed="$HOME/.local/bin/aic"
 	capture_bounded_output "installed AIC global rule synchronization" \
@@ -394,7 +551,7 @@ validate_archive() {
 }
 
 verify_payload() {
-	local payload="$1" sum hash marker path actual_count listed_count extracted_bytes update_identity
+	local payload="$1" sum hash marker path actual_count listed_count extracted_bytes update_identity b2c_inventory_sha256
 	declare -A checksum_paths=()
 	[ -x "$payload/install.sh" ] && [ -x "$payload/runtime/node/bin/node" ] &&
 		[ -x "$payload/aic-kernel/target/release/aic" ] &&
@@ -408,6 +565,15 @@ verify_payload() {
 		[ -f "$payload/SBOM.json" ] && [ ! -L "$payload/SBOM.json" ] &&
 		[ -f "$payload/RELEASE_NOTES.md" ] && [ ! -L "$payload/RELEASE_NOTES.md" ] &&
 		[ -f "$payload/runtime/node/LICENSE" ] && [ ! -L "$payload/runtime/node/LICENSE" ] &&
+		[ -f "$payload/runtime/b2c/aic-cartridges.mjs" ] && [ ! -L "$payload/runtime/b2c/aic-cartridges.mjs" ] &&
+		[ -f "$payload/runtime/b2c/aic-b2c.mjs" ] && [ ! -L "$payload/runtime/b2c/aic-b2c.mjs" ] &&
+		[ -f "$payload/runtime/b2c/aic-runtime-inventory.mjs" ] && [ ! -L "$payload/runtime/b2c/aic-runtime-inventory.mjs" ] &&
+		[ -x "$payload/runtime/b2c/b2c-wrapper.sh" ] && [ ! -L "$payload/runtime/b2c/b2c-wrapper.sh" ] &&
+		[ -f "$payload/runtime/b2c/runtime.json" ] && [ ! -L "$payload/runtime/b2c/runtime.json" ] &&
+		[ -f "$payload/runtime/b2c/SECURITY_REVIEW.json" ] && [ ! -L "$payload/runtime/b2c/SECURITY_REVIEW.json" ] &&
+		[ -f "$payload/runtime/b2c/node_modules/@salesforce/b2c-cli/bin/run.js" ] &&
+		[ ! -L "$payload/runtime/b2c/node_modules/@salesforce/b2c-cli/bin/run.js" ] &&
+		[ -f "$payload/runtime/b2c/node_modules/@salesforce/b2c-tooling-sdk/package.json" ] &&
 		[ -f "$payload/THIRD_PARTY_SOURCE/uluru-3.1.0.crate" ] &&
 		[ ! -L "$payload/THIRD_PARTY_SOURCE/uluru-3.1.0.crate" ] ||
 		fail "release payload is incomplete"
@@ -431,6 +597,14 @@ verify_payload() {
 	listed_count=$(wc -l <"$payload/SHA256SUMS")
 	[ "$actual_count" -eq "$((listed_count + 1))" ] ||
 		fail "release payload contains unlisted files"
+	[ "$(sha256sum "$payload/runtime/b2c/runtime.json" | awk '{ print $1 }')" = "$B2C_RUNTIME_METADATA_SHA256" ] ||
+		fail "release payload B2C metadata identity changed"
+	[ "$(sha256sum "$payload/runtime/b2c/aic-runtime-inventory.mjs" | awk '{ print $1 }')" = "$B2C_INVENTORY_SCRIPT_SHA256" ] ||
+		fail "release payload B2C inventory implementation changed"
+	b2c_inventory_sha256=$(b2c_runtime_inventory_sha256 "$payload/runtime/b2c") ||
+		fail "release payload B2C runtime inventory is unreadable"
+	[ "$b2c_inventory_sha256" = "$B2C_RUNTIME_INVENTORY_SHA256" ] ||
+		fail "release payload B2C runtime differs from its pinned full-tree identity"
 	if find "$payload" -type f -size +"${MAX_ARCHIVE_FILE_BYTES}"c -print -quit | grep -q .; then
 		fail "release payload contains an oversized extracted file"
 	fi
@@ -453,6 +627,7 @@ verify_payload() {
     const updateIdentity = JSON.parse(process.argv[6]);
     const sbom = JSON.parse(fs.readFileSync(process.argv[7], "utf8"));
     const coveredSource = process.argv[8];
+    const runtimeRoot = process.argv[9];
     const value = JSON.parse(fs.readFileSync(path, "utf8"));
     if (JSON.stringify(Object.keys(value).sort()) !== JSON.stringify(["releaseId", "schemaVersion", "target", "version", "webManifestSha256"].sort())
       || value.schemaVersion !== 1 || value.version !== expectedVersion || value.releaseId !== expectedId
@@ -480,9 +655,44 @@ verify_payload() {
         && component.name === "Rust standard library"
         && /^\d+\.\d+\.\d+$/.test(component.version)
         && component.license.includes("Apache-2.0 OR MIT"))) process.exit(7);
+    const runtime = JSON.parse(fs.readFileSync(require("node:path").join(runtimeRoot, "b2c/runtime.json"), "utf8"));
+    const securityBytes = fs.readFileSync(require("node:path").join(runtimeRoot, "b2c/SECURITY_REVIEW.json"));
+    const helperBytes = fs.readFileSync(require("node:path").join(runtimeRoot, "b2c/aic-cartridges.mjs"));
+    const runnerBytes = fs.readFileSync(require("node:path").join(runtimeRoot, "b2c/aic-b2c.mjs"));
+    const wrapperBytes = fs.readFileSync(require("node:path").join(runtimeRoot, "b2c/b2c-wrapper.sh"));
+    const cliPackage = JSON.parse(fs.readFileSync(require("node:path").join(runtimeRoot,
+      "b2c/node_modules/@salesforce/b2c-cli/package.json"), "utf8"));
+    const sdkPackage = JSON.parse(fs.readFileSync(require("node:path").join(runtimeRoot,
+      "b2c/node_modules/@salesforce/b2c-tooling-sdk/package.json"), "utf8"));
+    if (runtime.schemaVersion !== 2 || runtime.nodeVersion !== "v24.19.0"
+      || runtime.npmVersion !== "11.17.0" || runtime.packageCount !== 472
+      || runtime.packageLockSha256 !== "a1677f3b4b3d9a0c48bfd58415a56e1d4cd756db5888ad1370b4071c75a185f9"
+      || runtime.telemetryDefault !== "disabled"
+      || runtime.securityReviewSha256 !== "ac44d6d2a2bd2b2fc9825a0d8a606fc842b94238307487ccbd3030e88ba08e68"
+      || crypto.createHash("sha256").update(securityBytes).digest("hex") !== runtime.securityReviewSha256
+      || runtime.helperSha256 !== crypto.createHash("sha256").update(helperBytes).digest("hex")
+      || runtime.runnerSha256 !== crypto.createHash("sha256").update(runnerBytes).digest("hex")
+      || runtime.inventoryScriptSha256 !== "f37ce2c558a5558cbf4b15b06ca4e8cd8bce94e5c25daae07bb6ec8c84e821ff"
+      || runtime.wrapperSha256 !== crypto.createHash("sha256").update(wrapperBytes).digest("hex")
+      || JSON.stringify(Object.keys(runtime.inventory || {}).sort())
+        !== JSON.stringify(["algorithm", "entryCount", "fileCount", "schemaVersion", "sha256", "totalBytes"].sort())
+      || runtime.inventory.schemaVersion !== 1
+      || runtime.inventory?.algorithm !== "sha256-path-digests-v1"
+      || !Number.isInteger(runtime.inventory.entryCount) || runtime.inventory.entryCount < 1
+      || runtime.inventory.entryCount > 16384 || !Number.isInteger(runtime.inventory.fileCount)
+      || runtime.inventory.fileCount < 1 || runtime.inventory.fileCount > runtime.inventory.entryCount
+      || !Number.isInteger(runtime.inventory.totalBytes) || runtime.inventory.totalBytes < 1
+      || runtime.inventory.totalBytes > 536870912 || !/^[0-9a-f]{64}$/.test(runtime.inventory.sha256)
+      || cliPackage.name !== "@salesforce/b2c-cli" || cliPackage.version !== "1.21.4"
+      || sdkPackage.name !== "@salesforce/b2c-tooling-sdk" || sdkPackage.version !== "1.21.3"
+      || sbom.b2cRuntime?.metadata?.packageLockSha256 !== runtime.packageLockSha256
+      || sbom.b2cRuntime?.securityReview?.summary?.critical !== 0
+      || sbom.b2cRuntime?.securityReview?.summary?.high !== 18
+      || sbom.b2cRuntime?.securityReview?.summary?.moderate !== 4) process.exit(8);
     process.stdout.write(`${value.version}:${value.releaseId}`);
   ' "$payload/release.json" "$version" "$release_id" "linux-$architecture" "$web_manifest_sha256" \
-		"$update_identity" "$payload/SBOM.json" "$payload/THIRD_PARTY_SOURCE/uluru-3.1.0.crate") ||
+		"$update_identity" "$payload/SBOM.json" "$payload/THIRD_PARTY_SOURCE/uluru-3.1.0.crate" \
+		"$payload/runtime") ||
 		fail "release metadata does not match the public index"
 	[ "$marker" = "$version:$release_id" ] || fail "release metadata identity mismatch"
 }
@@ -512,11 +722,11 @@ main() {
 		fail "--replace-legacy and --repair are separate recovery boundaries"
 	unset BASH_ENV ENV NODE_OPTIONS TAR_OPTIONS GZIP AIC_INTERNAL_REPLACE_V1_0_81_UNIT \
 		AIC_INTERNAL_USER_PATH_HAS_LOCAL_BIN
-	for external in awk chmod curl find getconf grep head mkdir mktemp rm sha256sum tar timeout uname wc; do
+	for external in awk chmod cmp cp curl find getconf grep head ln mkdir mktemp mv rm sha256sum sort tar timeout uname wc xargs; do
 		unset -f "$external" 2>/dev/null || true
 	done
 	hash -r
-	for command in awk bash chmod curl env find getconf grep head id mkdir mktemp readlink realpath rm sha256sum stat tar timeout uname wc; do require_command "$command"; done
+	for command in awk bash chmod cmp cp curl env find getconf grep head id ln mkdir mktemp mv readlink realpath rm sha256sum sort stat tar timeout uname wc xargs; do require_command "$command"; done
 	[[ "${HOME:-}" = /* && "$HOME" != *$'\n'* && "$HOME" != *$'\r'* && "$HOME" != *$'\t'* ]] ||
 		fail "HOME must be one safe absolute path"
 	user_path_has_local_bin=0
@@ -572,7 +782,14 @@ main() {
 	validate_expected_release "$bundle_sha" "$bundle_bytes"
 	validate_installed_release
 	if [ "$already_current" -eq 1 ]; then
+		if ! installed_b2c_runtime_current; then
+			already_current=0
+			printf 'aic-release-install: current AIC binary is missing its exact B2C runtime; repairing the release\n' >&2
+		fi
+	fi
+	if [ "$already_current" -eq 1 ]; then
 		sync_installed_rules
+		ensure_installed_b2c_wrapper || fail "could not install the safe AIC B2C wrapper"
 		printf 'aic-release-install: AIC %s already matches the public binary release identity; use --repair only for an explicit reinstall\n' \
 			"$version"
 		return 0
@@ -601,6 +818,7 @@ main() {
 		"AIC_PREBUILT_RELEASE=1"
 		"AIC_SERVICE=$selected_service"
 		"AIC_INTERNAL_USER_PATH_HAS_LOCAL_BIN=$user_path_has_local_bin"
+		"AIC_RUNTIME_BUILD=$payload/runtime"
 	)
 	[ -z "$selected_port" ] || clean_environment+=("AIC_PORT=$selected_port")
 	[ -z "$selected_web" ] || clean_environment+=("AIC_WEB_DIR=$selected_web")

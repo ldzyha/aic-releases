@@ -8,21 +8,26 @@ grant an open-source license to AIC.
 Install or update the latest supported GNU/Linux build:
 
 ```bash
-(
-  installer="$(mktemp)"
-  trap 'rm -f -- "$installer"' EXIT
-  curl --disable --proto '=https' --proto-redir '=https' --tlsv1.2 --fail --location --silent --show-error \
-    --retry 3 --connect-timeout 10 --max-time 120 --max-filesize 65536 --output "$installer" \
-    https://raw.githubusercontent.com/ldzyha/aic-releases/main/public/aic-install.sh &&
-    bash "$installer"
-)
+( installer="$(mktemp)" && trap 'rm -f -- "$installer"' EXIT && curl --disable --proto '=https' --proto-redir '=https' --tlsv1.2 --fail --location --silent --show-error --retry 3 --connect-timeout 10 --max-time 120 --max-filesize 65536 --output "$installer" 'https://raw.githubusercontent.com/ldzyha/aic-releases/main/public/aic-install.sh' && bash "$installer" )
 ```
 
-For a trusted AIC binary old enough not to implement `release-info`, repeat the complete block but
-change its final line to `bash "$installer" --replace-legacy`. The normal path refuses an unreadable
-installed identity, and the temporary file still exists when the flagged command runs. That explicit
-path can also migrate the exact unmodified v1.0.81 generated `uv` service, retaining an owner-private
-unit backup and restoring its content/enabled/running state if installation fails. Customized legacy
+This is one physical shell line. Running the same line again verifies the current installation or
+installs a newer public release. Every successful install/update, including an already-current
+verification, invokes `aic rules sync --replace-global-instructions --json`. That transaction
+atomically replaces the complete AIC-managed instruction payload in each managed global
+instruction file, then verifies its installed identity; it never appends to an existing file.
+
+Advanced recovery flags are deliberately separate from the normal one-line command:
+
+- For an explicit reinstall of the same verified public release, repeat the complete line but
+  change its final invocation to `bash "$installer" --repair`.
+- For a trusted AIC binary old enough not to implement `release-info`, repeat the complete line but
+  change its final invocation to `bash "$installer" --replace-legacy`.
+
+The normal path refuses an unreadable installed identity, and the temporary file still exists when
+the flagged command runs. The explicit `--replace-legacy` path can also migrate the exact unmodified
+v1.0.81 generated `uv` service, retaining an owner-private unit backup and restoring its
+content/enabled/running state if installation fails. Customized legacy
 units are rejected for manual migration. Its normal uv executable symlink is accepted only inside
 the exact owner-controlled `~/.local/share/uv/tools/aic` environment, recorded separately, and
 restored before the old service is restarted on failure. When the optional historical autostart unit
@@ -36,12 +41,19 @@ For an inspect-before-run flow, download `public/aic-install.sh`, review it, and
 and uses AIC's rollback-capable user-service transaction. It does not clone the private repository
 and does not require Cargo, npm, Git, or source code.
 
+Each bundle includes its own Node 24.19.0 and the exact official
+`@salesforce/b2c-cli` 1.21.4 production dependency tree under AIC's XDG data runtime. AIC launches
+that runtime through fixed verified paths with telemetry and background version checks disabled;
+ambient Node paths and user/development oclif plugins are not loaded. The installer creates
+`~/.local/bin/b2c` only when that path is absent or already AIC-owned, and never replaces an
+unrelated user command. An already-current check recomputes the bounded full-tree identity of the
+installed B2C runtime; missing, extra, or changed dependency bytes force a transactional repair.
+
 After the first install, AIC can check and install newer public bundles from its desktop or mobile
 update action. The local backend—not the browser—selects the target and exact release tuple. This
 direct command remains an idempotent bootstrap and recovery path.
 An exact public channel/version/release-ID/browser identity is verified without a reinstall/restart;
-a same-version source build still migrates to the public channel. Pass `--repair` only for a
-deliberate same-public-release reinstall. Earlier Rust builds with strict `release-info` but no
+a same-version source build still migrates to the public channel. Earlier Rust builds with strict `release-info` but no
 four-field channel identity migrate without a legacy flag and remain protected from downgrade. A
 first install best-effort enables user lingering for keep-alive,
 prints a manual `sudo loginctl enable-linger <uid>` command when policy blocks it, and notes when
