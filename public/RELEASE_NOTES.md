@@ -1,69 +1,64 @@
-# AIC 2.11.3
+# AIC 3.8.4
 
-This is the first counted AIC release after the legacy `1.0.100` line. Its version records one
-verified public-release sequence, eleven included feature outcomes, and three included bug fixes.
+This counted release advances the verified public-release sequence after `2.11.3`. Its version
+records eight included feature outcomes and four included bug fixes.
 
 ## Feature outcomes
 
-- **F01 — Focused editor and navigation.** AIC converges on one mounted center editor with owner
-  notes on the left and project tools on the right. Explorer and project search share one surface;
-  `Ctrl/Cmd+Shift+E` reveals the valid active file; ignored paths stay hidden; private draft
-  recovery uses a typed browser-only route; tabs size to their content; and find/replace is a compact
-  icon rail with CSS-only responsive reflow.
-- **F02 — Project-aware Terminal processes.** Terminal sessions are grouped by project. Selecting a
-  session shows it without changing the editor project, the adjacent project control switches the
-  editor deliberately, and closing a process tab closes only that PTY.
-- **F03 — Exact installed-service restart.** `aic restart` validates the installed AIC unit and its
-  cgroup before restarting it, without accepting a caller-named lookalike service.
-- **F04 — Note and AI lifecycle controls.** Note and AI surfaces provide bounded delete-all reviews
-  and anchored exact-target confirmation without weakening runtime-owned path protection.
-- **F05 — Agent context and handoff contract.** The canonical English guide now provides typed
-  context resolve/audit/retire, cross-session task recovery, editor context binding, native
-  instruction delivery, authority ordering, concise Key Maps, and literal `GO` / `DONE` gates.
-- **F06 — Package migration intelligence.** Opening a clean saved `package.json` starts one bounded
-  background analysis of the exact locked package against the selected Node/npm runtime and latest
-  known LTS, including deprecation, bridge candidates, guarded matching actions, and a content-bound
-  30-day successful-result cache.
-- **F07 — Capability-gated Git and SFCC tools.** Git and SFCC load only for matching projects. The
-  SFCC tab uses pinned Salesforce B2C tooling for reviewed cartridge deployment and one bounded
-  recent-log request; it adds no watcher, tailer, activation, deletion, reload, or debugger action.
-  The bundled dependency inventory, notices, SBOM, and reviewed upstream advisory snapshot ship
-  with the release.
-- **F08 — Mobile extra-key dock.** Focused code and live Terminal inputs gain a compact keyboard-only
-  dock for Esc, Tab, modifiers, navigation keys, paging, and Enter. It uses browser/CSS viewport
-  behavior and contains no resize polling, microphone, dictation, transcript, or AI rewrite path.
-- **F09 — Local Mermaid preview.** Mermaid source gains a manual Edit/Preview switch for standalone
-  diagrams and the fenced block under a Markdown cursor. The pinned local renderer loads only on
-  Preview or Retry, keeps unsaved editor state mounted, and performs no runtime network fetch.
-- **F10 — Optional browser-built-in model status.** Supporting desktop Chrome builds can show a
-  status-only Models tab for exposed built-in APIs. It checks availability on open or explicit
-  Refresh and never creates, downloads, retains, or activates a model session.
-- **F11 — Counted release accounting.** AIC product waves now record stable feature or bug outcomes;
-  release freeze assigns contiguous local IDs, and the public version is derived as
-  `release.featureCount.bugCount`. Tests, documentation, refactors, generated files, and hardening
-  evidence do not inflate the counts.
+- **F01 — Reviewable AI maps and unified Explorer filters.** Unfinished task maps remain recoverable
+  across sessions, Mermaid fences render inline in the editor and Notes, and Explorer provides one
+  ordered `All`, `Worktree`, `Notes`, and `AI Notes` filter surface. Filters disable only when a
+  complete authoritative projection is empty, while unknown, loading, failed, and truncated states
+  remain recoverable. Explorer also fills its assigned sidebar without a trailing empty strip.
+- **F02 — Click-only mobile edge controls.** Two native edge controls reveal, hide, or replace the
+  mobile Notes and tools panes without gesture listeners that compete with system navigation. Their
+  labels, expanded state, safe-area placement, focus boundary, and newest-intent behavior remain
+  explicit.
+- **F03 — Persistent project note pin.** A pinned Note is normalized per project and becomes visible
+  only after a successful load. Restore, rename, delete, fallback, reload, and project-switch races
+  reconcile without leaking a stale pin or suppressing the current Note fallback.
+- **F04 — Browser-managed AI preparation.** The always-visible AI surface clearly separates Chrome
+  built-in support models from terminal coding agents. Supported Chrome builds can inspect and
+  prepare browser-managed availability or downloads; AIC sends no prompts and retains no browser
+  model session.
+- **F05 — Provider-neutral optional modules.** Optional modules use a generic descriptor-derived
+  capability map with explicit Git activation and invalidation. Product behavior no longer depends
+  on a provider-specific module contract.
+- **F06 — English practice while working.** The synchronized instruction pack includes the approved
+  English-practice behavior for fresh external harness sessions without changing product protocols
+  or provider authentication.
+- **F07 — Commander text wrapping control.** Commander can enable or disable wrapping in the central
+  editor without replacing the document, selection, history, or active buffer. The normalized
+  project-scoped preference survives reload and project switching; compact Notes stay wrapped.
+- **F08 — Explicit terminal-agent profiles.** The AI surface provides ordered First and Second
+  profiles for Codex or Claude Code, optional validated model names, complete-profile swapping, and
+  visible Launch or Authenticate actions. Each action opens an ordinary AIC Terminal and runs an
+  allowlisted interactive CLI command; AIC stores no keys, tokens, auth state, or transcripts and
+  performs no automatic pairing or delegation.
 
 ## Bug outcomes
 
-- **B01 — Android Developer Mode systemd repair.** The one-line installer emits an unquoted absolute
-  `WorkingDirectory=`. An ordinary rerun in Android Developer Mode's Debian GNU/Linux environment
-  transactionally repairs only the byte-exact prior AIC-generated unit reported as
-  `LoadState=bad-setting`, preserving its project, port, and web selector. Customized units,
-  drop-ins, unsafe ownership, and native Android/Termux remain outside this repair boundary.
-- **B02 — No hidden multi-page editor state.** The center editor now retains exactly zero or one code
-  buffer. Opening another file prepares it while the current file remains usable, durably preserves
-  unsaved text before an atomic replacement, discards stale loads, and removes the inaccessible
-  `6/13` counter, editor-only page cycling, and Close Others behavior. Terminal process tabs and the
-  independent note lane remain intact.
-- **B03 — Clear Worktree and search ownership.** Worktree, file search, and content search now reuse
-  Explorer hierarchy rhythm. Passive folder legends visibly own their file rows, files remain the
-  primary actions, and content hits no longer drift behind an excessive horizontal offset.
+- **B01 — Terminal workload isolation and recovery.** Managed installations contain each PTY in a
+  delegated killable cgroup, scope output to explicitly attached clients, and keep only the visible
+  terminal renderer alive. Recovery and close operations remain responsive under a bounded runaway
+  workload instead of allowing Terminal memory pressure to freeze AIC.
+- **B02 — Remove the AIC-owned SFCC module.** Native SFCC routes and product surfaces are retired
+  while the independently installed external B2C CLI remains outside AIC ownership. Optional-module
+  discovery and generated output remain provider-neutral.
+- **B03 — Exact explicit-relative navigation.** A reference such as `./addressAutocomplete` now uses
+  exact project-relative metadata navigation rather than Explorer fuzzy search. Missing, unsafe,
+  directory, and out-of-root references fail closed; only ambiguous non-path text enters search.
+- **B04 — Global shortcuts remain active from Explorer.** The persistent non-modal Explorer no
+  longer captures application modifier chords. `Ctrl/Cmd+\`` continues to toggle Terminal while
+  Explorer or its filters have focus, while genuine modal choices retain exclusive keyboard
+  ownership and ordinary Explorer navigation is unchanged.
 
 ## Compatibility record
 
-- `1.0.100` is the final legacy-numbered release; `2.11.3` starts counted release accounting and is
-  not a SemVer compatibility claim.
-- Existing project layouts containing several historical open paths normalize to the valid active
-  path only. Other durable recovery drafts remain available without recreating hidden editor pages.
-- Native Android/Termux remains unsupported. The supported Android path is its Developer Mode Debian
-  GNU/Linux environment with user systemd.
+- The version follows AIC counted-release accounting and is not a SemVer compatibility claim.
+- Existing project layout records gain only normalized optional wrap and non-secret terminal-profile
+  preferences; malformed or older values fall back safely.
+- AIC remains an editor and raw persistent terminal, not a model router. Codex and Claude Code retain
+  ownership of their authentication, model selection, processes, and transcripts.
+- File and Note changes retain the immediate pre-transition presentation; the rejected unpublished
+  fade behavior is absent. PC mirroring remains canceled, and no AIC-owned SFCC surface is restored.

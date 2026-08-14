@@ -41,13 +41,10 @@ For an inspect-before-run flow, download `public/aic-install.sh`, review it, and
 and uses AIC's rollback-capable user-service transaction. It does not clone the private repository
 and does not require Cargo, npm, Git, or source code.
 
-Each bundle includes its own Node 24.19.0 and the exact official
-`@salesforce/b2c-cli` 1.21.4 production dependency tree under AIC's XDG data runtime. AIC launches
-that runtime through fixed verified paths with telemetry and background version checks disabled;
-ambient Node paths and user/development oclif plugins are not loaded. The installer creates
-`~/.local/bin/b2c` only when that path is absent or already AIC-owned, and never replaces an
-unrelated user command. An already-current check recomputes the bounded full-tree identity of the
-installed B2C runtime; missing, extra, or changed dependency bytes force a transactional repair.
+Each bundle includes its own Node 24.19.0 under AIC's XDG data runtime. The release that replaces
+2.11.3 also retires only the byte-exact executable `~/.local/bin/b2c` wrapper shipped by that
+release. Symlinks, directories, foreign or modified files, and mode-changed copies remain owner
+state and are never removed.
 
 After the first install, AIC can check and install newer public bundles from its desktop or mobile
 update action. The local backend—not the browser—selects the target and exact release tuple. This
