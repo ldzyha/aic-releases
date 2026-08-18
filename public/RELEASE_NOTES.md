@@ -1,7 +1,8 @@
-# AIC 5.7.7
+# AIC 5.12.17
 
-This counted release advances the verified public-release sequence after `4.2.4`. Its version
-records seven included feature outcomes and seven included bug fixes.
+This cumulative Release 5 hotfix preserves the seven feature and seven bug outcomes published in
+`5.7.7`, then adds five verified feature outcomes and ten verified bug fixes. The release axis stays
+at `5`; the cumulative ledger now contains twelve features and seventeen bug fixes.
 
 ## Feature outcomes
 
@@ -31,6 +32,24 @@ records seven included feature outcomes and seven included bug fixes.
   three columns or use a persisted **Workspace: Two panels** toggle. Tablet keeps code plus one
   retained helper; mobile presents one modal surface. Hidden tracks collapse without losing editor,
   Note, Explorer, Terminal, or resource state.
+- **F08 — Mobile Terminal control deck.** Mobile Terminal exposes a symmetric custom-icon 3×3 deck
+  for Shift, Ctrl, Alt, Escape, Enter, and arrows, plus Home, End, English dictation, and Commander.
+  Horizontal terminal gestures send Tab or Shift+Tab, dictation does not focus the terminal or open
+  the software keyboard, and terminal carousel arrows remain without panel-toggle overlap.
+- **F09 — Shared right-sidebar work surfaces.** Commander and Open are registered tabs in one right
+  sidebar on mobile and desktop. Keyboard shortcuts and mobile controls use the same deterministic
+  routing path, and the duplicate legacy dialogs are removed.
+- **F10 — Manual ignored Explorer visibility.** Manual Explorer navigation shows gitignored files and
+  folders in a dimmed state, keeps dependency/runtime exclusions hidden, and visually distinguishes
+  confirmed-empty folders from ignored folders. Search and indexes remain strictly ignore-aware.
+- **F11 — Terminal command intelligence.** Authenticated shell events identify missing executables,
+  bounded completion and package resolution return reviewed candidates, and explicit browser
+  confirmation installs only the exact approved candidate into AIC's private user tool store for new
+  terminals. No system/global privileged path or model provider is modified.
+- **F12 — Primary-harness task-AI ownership.** One current direct-owner primary harness may write or
+  retire its task AI artifact. Delegated and peer models remain read-only; later direct-owner takeover
+  requires audit, owner-context/evidence revalidation, and an exact Next action, without persisting
+  provider or model identity.
 
 ## Bug outcomes
 
@@ -56,20 +75,51 @@ records seven included feature outcomes and seven included bug fixes.
 - **B07 — Scroll-safe flowchart previews.** Mermaid previews retain bounded horizontal overflow and
   click/keyboard source activation, but no longer own vertical scroll. Wheel, trackpad, and touch pan
   can continue through the surrounding Note or editor instead of stopping over a diagram.
+- **B08 — Exact first Terminal input.** The first Terminal entry is sent exactly once and is never
+  merged with, blocked by, or visually confused with placeholder state. Subsequent PTY input remains
+  unchanged.
+- **B09 — Deterministic Open and Commander routing.** Ctrl/Cmd+O always opens the registered Open
+  surface, and Commander always opens its registered tab in the same right sidebar. No duplicate
+  dialog path remains.
+- **B10 — Empty Worktree Explorer access.** Working Tree remains enabled with zero changes, shows a
+  count badge only when needed, and does not jump to another Explorer mode because its result is
+  empty.
+- **B11 — No-clobber project-root creation.** File and folder creation works at the project root,
+  refreshes into Explorer, and rejects every existing target without overwriting it. Existing path,
+  conflict, and atomic-write guards remain intact.
+- **B12 — Terminal runtime continuity.** Incremental runtime and UI updates do not recreate the
+  terminal controller, detach the active PTY, or open an unexplained replacement session on Android.
+  Explicit close and restart actions still control PTY lifecycle.
+- **B13 — New-terminal selection continuity.** Opening a new terminal keeps it selected across
+  asynchronous listings and reconciliation instead of returning to the previous session. Existing
+  sessions and replay remain available.
+- **B14 — Ignored-content search exclusion.** Content and name search, together with indexes, continue
+  to exclude gitignored paths even though manual Explorer navigation can display them.
+- **B15 — Incremental Explorer reconciliation.** Explorer updates keyed rows and changed metadata in
+  place, preserving selection, query, and scroll while eliminating whole-tree blink on routine
+  runtime events. Full replacement remains available for project-generation or root changes.
+- **B16 — Same-release hotfix accounting.** A hotfix retains release axis 5, carries prior outcome
+  IDs, and advances cumulative counts without decrease; a direct-owner-declared new release advances
+  exactly one axis after verified publication and resets its local counts. `5.7.7 → 5.12.17` and the
+  separately planned `6.1.0` both follow the canonical guide and publication verifier.
+- **B17 — Auditable public-update transition.** Public UI update state, logs, and Commander retain a
+  validated old-to-new direction, bootstrap version, target version, completion time, and the fixed
+  verified target-bundle installer provenance across restart and later equal-version checks. Older
+  state stays readable, malformed history is ignored, and trust plus anti-downgrade gates are
+  unchanged.
 
 ## Compatibility record
 
 - The version follows AIC counted-release accounting and is not a SemVer compatibility claim.
-- Existing projects migrate to Note autosave **blur**, Browser AI support **disabled**, and desktop
-  **Two panels** enabled. Narrow widths mask rather than overwrite the saved desktop preference.
-- Tablet widths 768–1279 now use a non-modal code-plus-helper split. Mobile remains an exclusive
-  surface; desktop begins at 1280 and may retain both helpers. Ctrl+Tab changes visibility on mobile
-  and moves focus between live code and helper on tablet.
-- Note saves no longer trim trailing whitespace. Non-Note code save normalization and kernel-owned
-  code blur-save remain unchanged.
-- Browser AI and both provider plugins are optional. Providerless operation remains supported; AIC
-  does not install, authenticate, select, or route any model provider.
-- Complete files through 2 MiB retain full editor services. Larger UTF-8 files use a bounded resource
-  window; binary and invalid UTF-8 files continue to fail closed.
-- Cross-provider review and simplification plugins remain repository capabilities outside the AIC
-  binary. Their presence does not weaken the digest-bound release review or publication gates.
+- This is a cumulative Release 5 hotfix: every `5.7.7` outcome remains present, with F08–F12 and
+  B08–B17 added contiguously. Release 6 remains a separate planned migration.
+- Desktop and fine-pointer Terminal input remain unchanged. Unsupported speech recognition reports
+  unavailability without focusing the Terminal or invoking the software keyboard.
+- Ignored files and folders become visible only through manual Explorer navigation. Search, indexes,
+  dependency exclusions, and runtime exclusions retain their existing boundaries.
+- Terminal command installation remains explicit, reviewed, unprivileged, and confined to AIC's
+  private user tool store. AIC does not mutate a system package manager or provider credentials.
+- Existing updater state without `lastUpdate` remains valid. Only canonical forward transitions from
+  the fixed public-binary bootstrap and verified target-bundle installer are displayed.
+- Existing projects, notes, editor files, PTY sessions, and external provider tools require no data
+  migration. The running owner service is not restarted by publication.
