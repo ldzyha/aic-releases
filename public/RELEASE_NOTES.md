@@ -1,8 +1,8 @@
-# AIC 5.12.17
+# AIC 5.12.18
 
-This cumulative Release 5 hotfix preserves the seven feature and seven bug outcomes published in
-`5.7.7`, then adds five verified feature outcomes and ten verified bug fixes. The release axis stays
-at `5`; the cumulative ledger now contains twelve features and seventeen bug fixes.
+This cumulative Release 5 hotfix preserves the twelve feature and seventeen bug outcomes published
+in `5.12.17`, then adds one verified bug fix. The release axis stays at `5`; the cumulative ledger
+now contains twelve features and eighteen bug fixes.
 
 ## Feature outcomes
 
@@ -25,9 +25,10 @@ at `5`; the cumulative ledger now contains twelve features and seventeen bug fix
   768–1279, and desktop begins at 1280. Width alone selects the layout; focus, helper, transient, and
   modal layers remain distinct through live resize while touch capability only adjusts ergonomics.
 - **F06 — Provider-neutral simplification skill.** Separate optional Codex and Claude plugins package
-  the same bounded, behavior-preserving `/simplify` workflow. It reviews reuse, clarity, efficiency,
-  and abstraction depth, supports dry-run and inline fallback, and never installs or changes provider
-  credentials or settings automatically.
+  the same bounded, behavior-preserving simplification workflow. In Codex, open `/skills` or invoke
+  `$simplify-for-codex:simplify`; it reviews reuse, clarity, efficiency, and abstraction depth,
+  supports dry-run and inline fallback, and never installs or changes provider credentials or
+  settings automatically.
 - **F07 — Adaptive retained panel composition.** Desktop can show Note, code, and a right helper in
   three columns or use a persisted **Workspace: Two panels** toggle. Tablet keeps code plus one
   retained helper; mobile presents one modal surface. Hidden tracks collapse without losing editor,
@@ -107,19 +108,19 @@ at `5`; the cumulative ledger now contains twelve features and seventeen bug fix
   verified target-bundle installer provenance across restart and later equal-version checks. Older
   state stays readable, malformed history is ignored, and trust plus anti-downgrade gates are
   unchanged.
+- **B18 — Codex Simplify plugin discovery.** The repository exposes the Codex adapter through an
+  explicit AIC marketplace, and fresh Codex sessions discover **Simplify** through `/skills` with the
+  native `$simplify-for-codex:simplify` mention. Cachebuster metadata, interface prompts, shared-skill
+  byte identity, and regression tests prevent stale installs and unsupported slash-command guidance.
 
 ## Compatibility record
 
 - The version follows AIC counted-release accounting and is not a SemVer compatibility claim.
-- This is a cumulative Release 5 hotfix: every `5.7.7` outcome remains present, with F08–F12 and
-  B08–B17 added contiguously. Release 6 remains a separate planned migration.
-- Desktop and fine-pointer Terminal input remain unchanged. Unsupported speech recognition reports
-  unavailability without focusing the Terminal or invoking the software keyboard.
-- Ignored files and folders become visible only through manual Explorer navigation. Search, indexes,
-  dependency exclusions, and runtime exclusions retain their existing boundaries.
-- Terminal command installation remains explicit, reviewed, unprivileged, and confined to AIC's
-  private user tool store. AIC does not mutate a system package manager or provider credentials.
-- Existing updater state without `lastUpdate` remains valid. Only canonical forward transitions from
-  the fixed public-binary bootstrap and verified target-bundle installer are displayed.
+- This is a cumulative Release 5 hotfix: every `5.12.17` outcome remains present, with B18 added
+  contiguously. Release 6 remains a separate planned migration.
+- Codex requires explicit marketplace/plugin installation and a new session before discovery. The
+  repair changes no provider credentials, model settings, permissions, or authentication material.
+- Claude keeps the same provider-neutral Simplify skill bytes. Codex uses `/skills` selection or the
+  namespaced skill mention because it does not expose the plugin as a standalone slash command.
 - Existing projects, notes, editor files, PTY sessions, and external provider tools require no data
   migration. The running owner service is not restarted by publication.
