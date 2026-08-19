@@ -1,8 +1,8 @@
-# AIC 7.0.12
+# AIC 7.0.15
 
-This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds twelve
+This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds fifteen
 verified bug fixes. The release axis stays at `7`; the cumulative ledger now contains zero feature
-outcomes and twelve bug outcomes.
+outcomes and fifteen bug outcomes.
 
 ## Feature outcomes
 
@@ -48,6 +48,19 @@ No separately counted feature outcomes.
   from the inline note header. The context-aware Smart Panel remains the single action owner while
   pinned state, Escape handling, focus containment, mutation barriers, and blur-only saving remain
   unchanged.
+- **B13 — Unattached folder confirmation activates the native project.** The Smart Panel folder
+  picker now routes confirmation through the explicit attached or unattached generation authority.
+  An unattached Chromebook or other client sends exactly one `project.open`, completes connected
+  boot, and reaches the selected project; stale confirmation fails without sending a request.
+- **B14 — Dictation abort diagnoses speech-service startup.** A browser `aborted` event before
+  recognition reaches `onstart` now explains that the browser or Android profile could not start its
+  speech service. An abort after listening begins remains a normal interruption, and every retry
+  still requires a new owner mic tap.
+- **B15 — Approved updates activate the current native and PWA release.** A user-approved update now
+  owns recovery across its expected server restart without enabling background reconnect for ordinary
+  disconnects. After durable native success, browser-shell replacement checks current worker/cache
+  state before subscribing, settles from service-worker lifecycle and `controllerchange` events, and
+  reloads exactly once only after the complete new shell controls the client.
 
 ## Compatibility record
 
@@ -60,11 +73,21 @@ No separately counted feature outcomes.
   switches. Their visible controls remain in Smart Panel; the removed Info action has no
   replacement.
 - Dictation remains dependent on browser/OS speech support, service reachability, language support,
-  secure-context policy, and owner-granted microphone permission. AIC installs no speech pack and
-  uploads audio to no new service.
+  secure-context policy, and owner-granted microphone permission. On Android/Vanadium, the current
+  profile must provide a usable selected speech-recognition service. AIC installs no speech pack,
+  adds no automatic retry loop, and uploads audio to no new service.
 - Browser-workspace navigation remains confined to the owner-granted directory handle. It does not
   reinterpret that folder as a native project root. Native folder browsing remains server-backed,
   accepts only absolute Linux paths, and does not weaken protected AIC-state filtering.
+- Attached folder switching still flushes pending editor work and uses its current generation.
+  Unattached confirmation uses the server-provided unattached generation and the existing boot path;
+  it does not reuse a stale project context or duplicate project installation.
+- General native reconnect remains manual. Only a persisted, owner-approved update may repeat native
+  connection attempts across the installer-owned restart. Update success is read from durable native
+  state after reconnect; elapsed time never claims completion.
+- A changed browser shell retains the prior complete service-worker cache until the replacement is
+  active. Worker installation failure remains visible and retryable, and a current replacement
+  document consumes the persisted update marker without a reload loop.
 - Smart Panel remains the single owner of contextual note actions. Removing the duplicate header
   controls does not change note contents, pinned-state persistence, or autosave behavior.
 - Automated browser, contract, Rust, packaging, bundle, and publication gates are the release
