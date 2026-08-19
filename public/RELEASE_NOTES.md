@@ -1,8 +1,8 @@
-# AIC 7.0.9
+# AIC 7.0.12
 
-This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds nine
+This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds twelve
 verified bug fixes. The release axis stays at `7`; the cumulative ledger now contains zero feature
-outcomes and nine bug outcomes.
+outcomes and twelve bug outcomes.
 
 ## Feature outcomes
 
@@ -37,21 +37,36 @@ No separately counted feature outcomes.
 - **B09 — Editor stable side-lane reservation.** Desktop and tablet retain empty left and right
   helper lanes while panels are closed, keeping the code track, CodeMirror geometry, selection, and
   scroll position stable when Notes or a right-side tool is toggled.
+- **B10 — Native folder opening from an authoritative location.** Connected folder browsing now
+  begins at the active project instead of the server process directory. An unattached server exposes
+  a bounded native-folder browser that starts near the configured project, filters malformed or
+  legacy listing rows, and attaches the owner-selected Linux folder through `project.open`.
+- **B11 — Icon-button descendant hit targets.** Presentation-only icon, SVG, label, and attention
+  descendants no longer intercept pointer hit-testing, so taps on any visible part of an enabled
+  icon button activate its semantic button exactly once.
+- **B12 — Note actions have one Smart Panel owner.** The duplicate Pin and Close controls are removed
+  from the inline note header. The context-aware Smart Panel remains the single action owner while
+  pinned state, Escape handling, focus containment, mutation barriers, and blur-only saving remain
+  unchanged.
 
 ## Compatibility record
 
 - The version follows AIC counted-release accounting and is not a SemVer compatibility claim.
 - This is a cumulative Release 7 hotfix. It preserves the `7.0.0` Preact/Kinu ownership boundary,
-  browser/native capability split, connected protocol, storage formats, and native authority.
+  connected RPC shapes, storage formats, and the separation between browser and native authority.
 - Empty helper lanes on desktop and tablet are intentional. Phone layout continues to use the
   existing full-screen helper overlay and does not reserve invisible lanes.
 - Terminal sessions and xterm instances remain native-server-backed and retained across surface
-  switches. Their visible controls move to Smart Panel; the removed Info action has no replacement.
+  switches. Their visible controls remain in Smart Panel; the removed Info action has no
+  replacement.
 - Dictation remains dependent on browser/OS speech support, service reachability, language support,
   secure-context policy, and owner-granted microphone permission. AIC installs no speech pack and
   uploads audio to no new service.
 - Browser-workspace navigation remains confined to the owner-granted directory handle. It does not
-  reinterpret that folder as the native project root or weaken protected AIC-state filtering.
+  reinterpret that folder as a native project root. Native folder browsing remains server-backed,
+  accepts only absolute Linux paths, and does not weaken protected AIC-state filtering.
+- Smart Panel remains the single owner of contextual note actions. Removing the duplicate header
+  controls does not change note contents, pinned-state persistence, or autosave behavior.
 - Automated browser, contract, Rust, packaging, bundle, and publication gates are the release
   authority. A successful external browser speech-service request and the final physical ChromeOS
   installed-PWA matrix remain unclaimed when the required provider or device is unavailable.
