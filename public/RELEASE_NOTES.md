@@ -1,8 +1,8 @@
-# AIC 7.0.15
+# AIC 7.0.16
 
-This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds fifteen
+This cumulative Release 7 hotfix preserves the published `7.0.0` architecture and adds sixteen
 verified bug fixes. The release axis stays at `7`; the cumulative ledger now contains zero feature
-outcomes and fifteen bug outcomes.
+outcomes and sixteen bug outcomes.
 
 ## Feature outcomes
 
@@ -61,6 +61,10 @@ No separately counted feature outcomes.
   disconnects. After durable native success, browser-shell replacement checks current worker/cache
   state before subscribing, settles from service-worker lifecycle and `controllerchange` events, and
   reloads exactly once only after the complete new shell controls the client.
+- **B16 — Reserved unattached project recovery.** The installed service no longer accepts its private
+  mount-independent `unattached` working directory as project authority. Poisoned remembered state
+  returns to honest unattached recovery, the reserved directory and its canonical aliases are
+  rejected before reroot, and a real owner-selected folder immediately supplies Explorer sources.
 
 ## Compatibility record
 
@@ -82,6 +86,10 @@ No separately counted feature outcomes.
 - Attached folder switching still flushes pending editor work and uses its current generation.
   Unattached confirmation uses the server-provided unattached generation and the existing boot path;
   it does not reuse a stale project context or duplicate project installation.
+- The private installed `unattached` directory remains the service's stable WorkingDirectory but is
+  now reserved from project admission. An installation that remembered this invalid root presents
+  the existing recovery UI and requires one explicit real-folder selection; valid unavailable
+  ChromeOS paths remain retained for later recovery.
 - General native reconnect remains manual. Only a persisted, owner-approved update may repeat native
   connection attempts across the installer-owned restart. Update success is read from durable native
   state after reconnect; elapsed time never claims completion.
